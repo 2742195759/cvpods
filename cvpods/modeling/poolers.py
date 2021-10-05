@@ -5,7 +5,7 @@ import sys
 
 import torch
 from torch import nn
-from torchvision.ops import PSRoIAlign, PSRoIPool, RoIPool
+from torchvision.ops import RoIPool
 
 from cvpods.layers import ROIAlign, ROIAlignRotated, cat
 from cvpods.utils.apex_wrapper import float_function
@@ -153,16 +153,6 @@ class ROIPooler(nn.Module):
         elif pooler_type == "ROIAlignRotated":
             self.level_poolers = nn.ModuleList(
                 ROIAlignRotated(output_size, spatial_scale=scale, sampling_ratio=sampling_ratio)
-                for scale in scales
-            )
-        elif pooler_type == "PSROIPool":
-            self.level_poolers = nn.ModuleList(
-                PSRoIPool(output_size, spatial_scale=scale)
-                for scale in scales
-            )
-        elif pooler_type == "PSROIAlign":
-            self.level_poolers = nn.ModuleList(
-                PSRoIAlign(output_size, spatial_scale=scale, sampling_ratio=sampling_ratio)
                 for scale in scales
             )
         else:

@@ -279,3 +279,69 @@ _PREDEFINED_SPLITS_CROWDHUMAN = {
 }
 
 PATH_ROUTES.register(_PREDEFINED_SPLITS_CROWDHUMAN, "CROWDHUMAN")
+#(XXX add by xiongkun for recommendation)
+_PREDEFINED_SPLITS_AMAZON = {
+    "dataset_type": "AmazonDataset",
+    "evaluator_type": "recommendation"
+}
+PATH_ROUTES.register(_PREDEFINED_SPLITS_AMAZON, "AMAZON")
+
+#(XXX add by xiongkun for recommendation)
+_PREDEFINED_SPLITS_AMAZONSUB = {
+    "dataset_type": "AmazonDatasetSubstitution",
+    "evaluator_type": "recommendation"
+}
+PATH_ROUTES.register(_PREDEFINED_SPLITS_AMAZONSUB, "AMAZONSUB")
+
+"""
+referit dataset input: 
+{
+## the following is the original information stored in referit dataset
+    'file_name': image_file_str, 
+    'tokens': [word1, word2, word3 ...],
+    'image_size': [w, h]
+    'raw': str, 
+    'bbox':  [x, y, w, h],
+    'category_id': cid,
+## the following is preprocessed by dataset. contained image load + token2id
+    'image': [image_tensor]
+    'bbox_image': [bbox_image_tns1, bbox_image_tns2, ...],  和增广有关
+    'token_ids': [id1, id2, id3 ...],
+
+## the following will appear when DATASETS.VERBOSE = True, we can use it for debug, but will slow down our speed
+    'img_dict': loadImgs()[0], 
+    'ann_dict': loadAnns()[0], 
+    'ref_dict': loadRefs()[0],
+    'cat_dict': loadCats()[0],
+}
+"""
+#(XXX add by xiongkun for phrase grounding / referring expression tasks)
+_PREDEFINED_SPLITS_REFERIT = {
+    "dataset_type": "ReferitDataset",
+    "evaluator_type": "phrasegrounding"
+}
+PATH_ROUTES.register(_PREDEFINED_SPLITS_REFERIT, "REFERIT")
+
+_PREDEFINED_SPLITS_REFERITFAST = {
+    "dataset_type": "ReferitFastDataset",
+    "evaluator_type": "phrasegrounding"
+}
+PATH_ROUTES.register(_PREDEFINED_SPLITS_REFERITFAST, "REFERITFAST")
+
+_PREDEFINED_SPLITS_GOOGLECOLOR = {
+    "dataset_type": "GoogleColorDataset",
+    "evaluator_type": "classification"
+}
+PATH_ROUTES.register(_PREDEFINED_SPLITS_GOOGLECOLOR, "GOOGLECOLOR")
+
+_PREDEFINED_SPLITS_EBAYCOLOR = {
+    "dataset_type": "EbayColorDataset",
+    "evaluator_type": "classification"
+}
+PATH_ROUTES.register(_PREDEFINED_SPLITS_EBAYCOLOR, "EBAYCOLOR")
+
+_PREDEFINED_SPLITS_CIFAR = {
+    "dataset_type": "CIFARDataset",
+    "evaluator_type": "classification"
+}
+PATH_ROUTES.register(_PREDEFINED_SPLITS_CIFAR, "CIFAR")

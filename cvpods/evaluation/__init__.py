@@ -14,5 +14,6 @@ from .rotated_coco_evaluation import RotatedCOCOEvaluator
 from .sem_seg_evaluation import SemSegEvaluator
 from .testing import print_csv_format, verify_results
 from .widerface_evaluation import WiderFaceEvaluator
+from .recommendation_normal import RecommendationEvaluator
 
 __all__ = [k for k in globals().keys() if not k.startswith("_")]

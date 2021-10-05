@@ -15,6 +15,7 @@ def print_csv_format(results):
     Args:
         results (OrderedDict[dict]): task_name -> {metric -> score}
     """
+    return 
     assert isinstance(results, OrderedDict), results  # unordered results cannot be properly printed
     logger = logging.getLogger(__name__)
     for task, res in results.items():

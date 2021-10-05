@@ -71,6 +71,10 @@ def build_evaluator(cfg, dataset_name, dataset, output_folder=None, dump=False):
         return EVALUATOR.get("ClassificationEvaluator")(
             dataset_name, meta, cfg, True, output_folder, dump)
 
+    if evaluator_type == "recommendation":
+        return EVALUATOR.get("RecommendationEvaluator")(
+            dataset_name, meta, cfg, True)
+
     if hasattr(cfg, "EVALUATORS"):
         for evaluator in cfg.EVALUATORS:
             evaluator_list.append(evaluator(dataset_name, meta, True, output_folder, dump=True))

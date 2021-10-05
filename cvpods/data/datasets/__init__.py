@@ -10,6 +10,12 @@ from .objects365 import Objects365Dataset
 from .torchvision_datasets import CIFAR10Dataset, STL10Datasets
 from .voc import VOCDataset
 from .widerface import WiderFaceDataset
+from .google_color import GoogleColorDataset
+from .cifar import CIFARDataset
+from .rec_amazon import AmazonDataset
+from .ebay_color import EbayColorDataset
+#from .referit import ReferitDataset
+#from .referit_fast import ReferitFastDataset
 
 __all__ = [
     "COCODataset",
@@ -19,6 +25,13 @@ __all__ = [
     "WiderFaceDataset",
     "LVISDataset",
     "CityPersonsDataset",
+    "AmazonDataset",
+    "AmazonDatasetSubstitution",
+    #"ReferitDataset", 
+    #"ReferitFastDataset", 
+    "GoogleColorDataset",
+    "EbayColorDataset",
+    "CIFARDataset", 
     "Objects365Dataset",
     "CrowdHumanDataset",
     "CIFAR10Dataset",
