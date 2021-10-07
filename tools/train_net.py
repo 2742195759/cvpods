@@ -92,6 +92,9 @@ def main(args):
     base_config = cfg.__class__.__base__()
     logger.info("different config with base class:\n{}".format(cfg.diff(base_config)))
 
+    if args.eval_only:
+        runner.test(cfg, runner.model)
+        return 
     runner.train()
 
 

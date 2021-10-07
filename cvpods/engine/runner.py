@@ -21,7 +21,8 @@ from cvpods.modeling.nn_utils.module_converter import maybe_convert_module
 from cvpods.modeling.nn_utils.precise_bn import get_bn_modules
 from cvpods.solver import build_lr_scheduler, build_optimizer
 from cvpods.utils import comm, setup_logger
-from cvpods.utils.dump.events import CommonMetricPrinter, JSONWriter, TensorboardXWriter
+from cvpods.utils.dump.events import CommonMetricPrinter, JSONWriter, TensorboardXWriter, VisdomWriter
+from cvpods.evaluation.testing import flatten_results_dict
 
 from . import hooks
 from .base_runner import RUNNERS, SimpleRunner
@@ -213,9 +214,25 @@ class DefaultRunner(SimpleRunner):
             self._last_eval_results = self.test(self.cfg, self.model)
             return self._last_eval_results
 
+        def save_best_model():
+            key = cfg.TEST.SORT_BY
+            assert hasattr(self, '_last_eval_results'), "Must run after test_and_save_results()"
+            max_value = 0.0 if self._max_eval_results is None else flatten_results_dict(self._max_eval_results)[key]
+            cur_value = flatten_results_dict(self._last_eval_results)[key]
+            if cur_value >= max_value:
+                self._max_eval_results = self._last_eval_results
+                """ start save checkpoint
+                """
+                self.checkpointer.save("model_best")
+            return None
+
         # Do evaluation after checkpointer, because then if it fails,
         # we can use the saved checkpoint to debug.
         ret.append(hooks.EvalHook(cfg.TEST.EVAL_PERIOD, test_and_save_results))
+        if cfg.TEST.get('SORT_BY'):
+            # save max metric checkpoint, which means early stopping
+            self._max_eval_results = None
+            ret.append(hooks.EvalHook(cfg.TEST.EVAL_PERIOD, save_best_model))
 
         if comm.is_main_process():
             # Here the default print/log frequency of each writer is used.
@@ -223,6 +240,9 @@ class DefaultRunner(SimpleRunner):
             ret.append(hooks.PeriodicWriter(
                 self.build_writers(),
                 period=self.window_size))
+            ret.append(hooks.PeriodicWriter(
+                self.build_everystep_writers(),
+                period=1))
         return ret
 
     def build_writers(self):
@@ -237,6 +257,14 @@ class DefaultRunner(SimpleRunner):
 
         Returns:
             list[EventWriter]: a list of :class:`EventWriter` objects.
+        It is now implemented by:
+            .. code-block:: python
+
+                return [
+                    CommonMetricPrinter(self.max_iter),
+                    JSONWriter(os.path.join(self.cfg.OUTPUT_DIR, "metrics.json")),
+                    TensorboardXWriter(self.cfg.OUTPUT_DIR),
+                    ]
         """
         return [
             # It may not always print what you want to see, since it prints "common" metrics only.
@@ -249,11 +277,37 @@ class DefaultRunner(SimpleRunner):
                 os.path.join(self.cfg.OUTPUT_DIR, "metrics.json"),
                 window_size=self.window_size
             ),
-            TensorboardXWriter(
-                self.cfg.OUTPUT_DIR,
-                window_size=self.window_size
-            ),
         ]
+        return ret
+
+    def build_everystep_writers(self):
+        """ 
+        NOTE(xiongkun):
+            Build a list of writers to be used. By default it contains VisdomWriter.
+            This writer is called every step. Because some metric may apprear only 
+            in Eval Period or other occassion. Use this to catch the matric and print.
+
+            This can make visdom display Eval Metrics as scalar. If put in build_writers, 
+            eval time metric will reset by storage.step() and we can't print it by storage.latest()
+        Returns:
+            list[EventWriter]: a list of :class:`EventWriter` objects.
+        It is now implemented by:
+            .. code-block:: python
+
+                return [
+                    VisdomWriter(...),
+                    ]
+        """
+        ret = []
+        if hasattr(self.cfg, "VISDOM") and self.cfg.VISDOM.TURN_ON == True:
+            logger = logging.getLogger("Visdom")
+            logger.info('Host:' + str(self.cfg.VISDOM.HOST), 'Port:' + str(self.cfg.VISDOM.PORT))
+            kargs = {}
+            if hasattr(self.cfg.VISDOM, "OPTIONS"): kargs = self.cfg.VISDOM.OPTIONS
+            ret.append(
+                VisdomWriter(self.cfg.VISDOM.HOST, self.cfg.VISDOM.PORT, 20, self.cfg.VISDOM.KEY_LIST, self.cfg.VISDOM.ENV_PREFIX, **kargs)
+            )
+        return ret
 
     def train(self):
         """

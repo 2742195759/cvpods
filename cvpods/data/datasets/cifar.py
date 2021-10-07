@@ -29,6 +29,7 @@ from tqdm import tqdm as tq
 from ..base_dataset import BaseDataset
 from .cifar_utils.generate_noisy_cifar_data import generate_noisy_cifar, read_cifar_100, read_cifar_10
 from .paths_route import _PREDEFINED_SPLITS_CIFAR
+from ..registry import DATASETS
 
 """
 This file is dataset class of cifar
@@ -36,6 +37,7 @@ This file is dataset class of cifar
 
 logger = logging.getLogger(__name__)
 
+@DATASETS.register()
 class CIFARDataset(BaseDataset):
     """
     This class contain noise operation, you can specify the noisy ratio of 

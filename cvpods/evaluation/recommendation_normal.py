@@ -28,7 +28,6 @@ class RecommendationEvaluator(DatasetEvaluator):
                 Otherwise, will evaluate the results in the current process.
         """
         self._distributed = distributed
-        self._cpu_device = torch.device("cpu")
         self._logger = logging.getLogger(__name__)
         self._metadata = meta
         self._dump = dump

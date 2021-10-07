@@ -106,7 +106,8 @@ class RunnerBase:
     def before_step(self):
         # Maintain the invariant that storage.iter == runner.iter
         # for the entire execution of each step
-        self.storage._iter = self.iter
+        #self.storage._iter = self.iter #BUG, step() is the better way
+        self.storage.step() # step 
 
         for h in self._hooks:
             h.before_step()

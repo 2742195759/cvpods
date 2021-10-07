@@ -10,6 +10,7 @@ from .dump import (
     HistoryBuffer,
     JSONWriter,
     TensorboardXWriter,
+    VisdomWriter,
     create_small_table,
     create_table_with_header,
     get_event_storage,
@@ -25,5 +26,6 @@ from .memory import retry_if_cuda_oom
 from .metrics import accuracy
 from .registry import Registry
 from .visualizer import ColorMode, VideoVisualizer, VisImage, Visualizer, colormap, random_color
+from .matplotlib_tools import PltHistogram
 
 __all__ = [k for k in globals().keys() if not k.startswith("_")]

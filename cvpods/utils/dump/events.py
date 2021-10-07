@@ -12,6 +12,7 @@ from collections import defaultdict
 from contextlib import contextmanager
 
 import torch
+import numpy as np
 
 from cvpods.utils.file import PathManager
 
@@ -146,6 +147,113 @@ class TensorboardXWriter(EventWriter):
         if hasattr(self, "_writer"):  # doesn't exist when the code fails at import
             self._writer.close()
 
+            
+class VisdomWriter(EventWriter):
+    """
+    Write all scalars to a visdom env: scalar, and draw curves
+    """
+    def _show_image_with_bound(self, input_dict, boxes):#{{{
+        """ boxes = Boxes()
+        """
+        pic = np.array(Image.open(osp.join('/home/xiongkun/dataset/cv/mscoco/train2014/', input_dict['file_name'])))
+        pic = cv2.resize(pic, (224,224))
+        assert (pic.shape[-1] == 3)
+        for box in boxes.tensor.cpu():
+            c = tuple(np.random.randint(0, 255, (3,)).tolist())
+            cv2.rectangle(pic, (box[0], box[1]), (box[2]-2, box[3]-2), c, 2)
+        pic = pic.transpose((2,0,1))
+        self.show_image(pic, input_dict['raw']) #}}}
+
+    def _show_image(self, image, text):#{{{
+        """ image format is : 3,H,W
+        """
+        assert (image.shape[0] == 3)
+        self._env_images.image(
+            image, 
+            opts={
+                'title': '###' + text , 
+                'showlegend': True
+            }
+        )
+    #}}}
+
+    def __init__(self, host:str, port:int, window_size: int = 20, interested_keys=[], env_prefix='', **kwargs):
+        """
+        Args:
+            host,port: the host and port of visdom server
+            window_size (int): the scalars will be median-smoothed by this window size
+            kwargs: other arguments passed to `torch.utils.tensorboard.SummaryWriter(...)`
+        """
+        self._window_size = window_size
+        self._interested_keys = interested_keys
+        from visdom import Visdom
+        if 'SPLIT' in kwargs and kwargs['SPLIT'] == True: 
+            self._env_scalar = Visdom(host, port=port, env=env_prefix + '_cvpack2_scalar')
+            self._env_images = Visdom(host, port=port, env=env_prefix + '_cvpack2_images')
+            self._env_heatmap = Visdom(host, port=port, env=env_prefix + '_cvpack2_heatmap')
+            self._env_embeddings = Visdom(host, port=port, env=env_prefix + '_cvpack2_embeddings')
+            self._env_histogram = Visdom(host, port=port, env=env_prefix + '_cvpack2_histogram')
+        else : 
+            _env_main = Visdom(host, port=port, env=env_prefix + '_main')
+            self._env_scalar = _env_main
+            self._env_images = _env_main
+            self._env_heatmap = _env_main
+            self._env_embeddings = _env_main
+            self._env_histogram = _env_main
+
+        self._key2panel  = {}
+        for key in interested_keys:
+            self._key2panel[key] = self._env_scalar.line(
+                X=np.array([0]),
+                Y=np.array([0]),
+                opts=dict(title='' + key))
+
+    def _vis_draw(self, type, tns, add):
+        if type == 'heatmap':
+            self._env_heatmap.heatmap(
+                tns, opts=add,
+            )
+        if type == 'embeddings':
+            self._env_embeddings.embeddings(
+                tns.numpy(), add['labels'], opts=add
+            )
+            self._env_embeddings.embeddings
+
+        if type == 'histogram':
+            bincount = add.get('histogram', 100)
+            title   = add.get('title', 'histogram')
+            tns = tns.reshape([-1])
+            self._env_histogram.histogram(
+                X=tns.reshape([-1]),
+                opts={'xlabel': 'bin', 
+                      'ylabel': 'count', 
+                      'title': title, 
+                      'numbins': bincount, 
+                     }
+            )
+
+    def write(self):
+        storage = get_event_storage()
+        for k, v in storage.latest_with_smoothing_hint(self._window_size).items():
+            if k in self._interested_keys:
+                self._env_scalar.line(
+                    X=np.array([storage.iter]),
+                    Y=np.array([v]),
+                    win=self._key2panel[k],
+                    update='append')
+
+        if len(storage.vis_data) >= 1:
+            for img_name, img, step_num in storage.vis_data:
+                self._show_image(img, img_name)
+            storage.clear_images()
+
+        for type, tns_data, addition, step_num in storage.get_tensor(): 
+            self._vis_draw(type, tns_data, addition)
+        storage.clear_tensor()
+
+    def close(self):
+        ...
+
 
 class CommonMetricPrinter(EventWriter):
     """
@@ -275,6 +383,7 @@ class EventStorage:
         self._iter = start_iter
         self._current_prefix = ""
         self._vis_data = []
+        self._tensor_data = []
 
     def put_image(self, img_name, img_tensor):
         """
@@ -289,6 +398,39 @@ class EventStorage:
                 The `img_tensor` will be visualized in tensorboard.
         """
         self._vis_data.append((img_name, img_tensor, self._iter))
+
+    def put_tensor(self, tensor, output_type='embeddings', addition={}):
+        """
+        Add an `tensor_data` to the `_tensor_data` associated with `addition` and `output_type`.
+
+        Args:
+            tensor (torch.Tensor or numpy.array): An `uint8` or `float`
+            output_type (str): The type of the tensor, can be 
+                ["histogram", "embeddings", "heatmap"]
+            addition (dict): attention data for specified output_type
+                heatmap = {
+                    'x_labels': list(str able)
+                    'y_labels': list(str able)
+                }
+                histogram = {
+                    'title': 'hisgram-1' 
+                    'bincount': 200
+                }
+        """
+        self._tensor_data.append((output_type, tensor, addition, self._iter))
+
+    def clear_tensor(self):
+        """
+        Delete all the stored tensors. This should be called
+        after images are written to visdom.
+        """
+        self._tensor_data = []
+
+    def get_tensor(self, output_type=None):
+        """ filter specified output_type of tensor_data 
+        """
+        if output_type == None: return self._tensor_data
+        return [_ for _ in self._tensor_data if _[0] == output_type]
 
     def clear_images(self):
         """
@@ -359,7 +501,7 @@ class EventStorage:
         """
         return self._latest_scalars
 
-    def latest_with_smoothing_hint(self):
+    def latest_with_smoothing_hint(self, window_size=None):
         """
         Similar to :meth:`latest`, but the returned values
         are either the un-smoothed original latest value,
@@ -368,10 +510,12 @@ class EventStorage:
 
         This provides a default behavior that other writers can use.
         """
+        if not window_size:
+            window_size = self._window_size
         result = {}
         for k, v in self._latest_scalars.items():
             result[k] = (
-                self._history[k].median(self._window_size) if self._smoothing_hints[k] else v
+                self._history[k].median(window_size) if self._smoothing_hints[k] else v
             )
         return result
 
@@ -396,6 +540,10 @@ class EventStorage:
     @property
     def vis_data(self):
         return self._vis_data
+
+    @property
+    def tensor_data(self):
+        return self._tensor_data
 
     @property
     def iter(self):

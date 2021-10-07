@@ -42,12 +42,16 @@ class RepeatDataset(object):
         times (int): Repeat times.
     """
 
-    def __init__(self, dataset, times):
-        self.dataset = dataset
+    def __init__(self, datasets, times):
+        assert len(datasets) == 1, "The datasets passed to RepeatDataset  must be __len__() == 1, but found {}".format(len(datasets))
+        self.dataset = datasets[0]
         self.times = times
         if hasattr(self.dataset, 'aspect_ratios'):
             self.aspect_ratios = np.tile(self.dataset.aspect_ratios, times)
-
+        if hasattr(self.dataset, 'meta'):
+            self.meta = {}
+            self.meta.update(self.dataset.meta)
+            self.meta = SimpleNamespace(**self.meta)
         self._ori_len = len(self.dataset)
 
     def __getitem__(self, idx):

@@ -49,7 +49,7 @@ class DistributedGroupSampler(Sampler):
         self.num_replicas = num_replicas
         self.rank = rank
         self.epoch = 0
-
+        
         assert hasattr(self.dataset, 'aspect_ratios')
         self.aspect_ratios = self.dataset.aspect_ratios
         self.group_sizes = np.bincount(self.aspect_ratios)
@@ -108,6 +108,13 @@ class DistributedGroupSampler(Sampler):
     def set_epoch(self, epoch):
         self.epoch = epoch
 
+@SAMPLERS.register()
+class DistributedGroupSamplerTimeSeed(DistributedGroupSampler):
+    def _get_generator(self):
+        g = torch.Generator()
+        time_sec = int(time.time())
+        g.manual_seed(time_sec)
+        return g
 
 @SAMPLERS.register()
 class RepeatFactorTrainingSampler(Sampler):

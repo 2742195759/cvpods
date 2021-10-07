@@ -96,10 +96,11 @@ def build_dataset(config, dataset_names, transforms=[], is_train=True):
         for dataset_name in dataset_names
     ]
     custom_type, args = config.DATASETS.CUSTOM_TYPE
-    # wrap all datasets, Dataset concat is the default behaviour
+    if not is_train and custom_type == 'RepeatDataset':
+        custom_type = "ConcatDataset"
+        args = dict()
     dataset = DATASETS.get(custom_type)(datasets, **args)
     return dataset
-
 
 def build_train_loader(cfg):
     """
@@ -143,7 +144,9 @@ def build_train_loader(cfg):
     elif sampler_name == "RepeatFactorTrainingSampler":
         sampler = SAMPLERS.get(sampler_name)(
             dataset, cfg.DATALOADER.REPEAT_THRESHOLD)
-
+    elif sampler_name == "DistributedGroupSamplerTimeSeed":
+        sampler = SAMPLERS.get(sampler_name)(dataset, images_per_minibatch,
+                                                   num_devices, rank)
     data_loader = torch.utils.data.DataLoader(
         dataset,
         batch_size=images_per_minibatch,
