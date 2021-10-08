@@ -21,7 +21,7 @@ import numpy as np
 import torch
 
 from copy import deepcopy
-from cvpack2.utils import Timer
+from cvpods.utils import Timer
 from tqdm import tqdm as tq
 
 from ..registry import DATASETS
@@ -29,7 +29,7 @@ from ..base_dataset import BaseDataset
 from .paths_route import _PREDEFINED_SPLITS_AMAZON
 
 """
-This file contains functions to parse AmazonDataset to cvpack2 dataset
+This file contains functions to parse AmazonDataset to cvpods dataset
 """
 
 logger = logging.getLogger(__name__)

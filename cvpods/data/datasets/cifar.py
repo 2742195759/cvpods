@@ -22,8 +22,8 @@ import numpy as np
 import torch
 
 from copy import deepcopy
-from cvpack2.utils import Timer
-from cvpack2.data.transforms.transform_gen import TorchTransformGen
+from cvpods.utils import Timer
+from cvpods.data.transforms.transform_gen import TorchTransformGen
 from tqdm import tqdm as tq
 
 from ..base_dataset import BaseDataset
