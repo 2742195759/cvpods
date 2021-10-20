@@ -345,3 +345,8 @@ _PREDEFINED_SPLITS_CIFAR = {
     "evaluator_type": "classification"
 }
 PATH_ROUTES.register(_PREDEFINED_SPLITS_CIFAR, "CIFAR")
+_PREDEFINED_SPLITS_MNIST = {
+    "dataset_type": "MNISTDataset",
+    "evaluator_type": "classification"
+}
+PATH_ROUTES.register(_PREDEFINED_SPLITS_MNIST, "MNIST")

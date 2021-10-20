@@ -14,6 +14,7 @@ from .google_color import GoogleColorDataset
 from .cifar import CIFARDataset
 from .rec_amazon import AmazonDataset
 from .ebay_color import EbayColorDataset
+from .mnist import MNISTDataset
 #from .referit import ReferitDataset
 #from .referit_fast import ReferitFastDataset
 
@@ -36,4 +37,6 @@ __all__ = [
     "CrowdHumanDataset",
     "CIFAR10Dataset",
     "STL10Datasets",
+    "MNISTDataset",
 ]
+
