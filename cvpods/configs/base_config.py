@@ -79,6 +79,9 @@ _config_dict = dict(
         PROPOSAL_FILES_TEST=(),
         # Number of top scoring precomputed proposals to keep for test
         PRECOMPUTED_PROPOSAL_TOPK_TEST=1000,
+        # Seed for dataset. In parallel context, we may want to ensure the dataset state the same. 
+        # but cfg.SEED is SEED + rank, can't do this. 
+        SEED = 2021, 
     ),
     DATALOADER=dict(
         # Number of data loading threads

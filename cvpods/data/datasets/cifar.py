@@ -59,7 +59,7 @@ class CIFARDataset(BaseDataset):
         self.noise_ratio = cfg.DATASETS.NOISE_RATIO
         self.num_clean = cfg.DATASETS.CLEAN_NUM
         self.with_background = cfg.DATASETS.WITH_BACKGROUND
-        self.seed = cfg.SEED
+        self.seed = cfg.DATASETS.SEED
         self.discount = cfg.DATASETS.get("DISCOUNT_RATIO", 1.0)
 
         self.meta = self._get_metadata()

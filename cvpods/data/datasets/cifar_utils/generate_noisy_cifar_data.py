@@ -286,6 +286,8 @@ def generate_noisy_cifar(dataset,
     # Split training set and validation set.
     train_img, train_label, val_img, val_label = trainval_split(train_img, train_label, num_val,
                                                                 seed)
+    print (train_label[:10])
+
     # Split data and generate synthetic noise.
     noise_img, noise_label, noise_mask, clean_img, clean_label = generate_data(
         train_img, train_label, noise_ratio, num_clean, num_classes, seed, background=background)
