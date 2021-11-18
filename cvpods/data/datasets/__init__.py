@@ -15,6 +15,8 @@ from .cifar import CIFARDataset
 from .rec_amazon import AmazonDataset
 from .ebay_color import EbayColorDataset
 from .mnist import MNISTDataset
+from .movielen import MovieLenDataset
+from .rec_debias import SelectionBiasDataset
 #from .referit import ReferitDataset
 #from .referit_fast import ReferitFastDataset
 
@@ -38,5 +40,7 @@ __all__ = [
     "CIFAR10Dataset",
     "STL10Datasets",
     "MNISTDataset",
+    "MovieLenDataset",
+    "SelectionBiasDataset",
 ]
 

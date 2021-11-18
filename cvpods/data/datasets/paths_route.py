@@ -350,3 +350,15 @@ _PREDEFINED_SPLITS_MNIST = {
     "evaluator_type": "classification"
 }
 PATH_ROUTES.register(_PREDEFINED_SPLITS_MNIST, "MNIST")
+
+_PREDEFINED_SPLITS_MOVIELEN = {
+    "dataset_type": "MovieLenDataset",
+    "evaluator_type": "mse",
+}
+PATH_ROUTES.register(_PREDEFINED_SPLITS_MOVIELEN, "MOIVELEN")
+
+_PREDEFINED_SPLITS_SELECTIONBIAS = {
+    "dataset_type": "SelectionBiasDataset",
+    "evaluator_type": "mse",
+}
+PATH_ROUTES.register(_PREDEFINED_SPLITS_SELECTIONBIAS, "SELECTIONBIAS")

@@ -268,7 +268,7 @@ class MLP(torch.nn.Module):
         list[-1] is the output dim
         output is activated
     """
-    def __init__(self, dim_list, activate_module, last_activate=True):
+    def __init__(self, dim_list, activate_module=torch.nn.ReLU, last_activate=True):
         super(MLP, self).__init__()
         self.dim_list = dim_list
         self.dim_list = [ int(num) for num in dim_list ]
